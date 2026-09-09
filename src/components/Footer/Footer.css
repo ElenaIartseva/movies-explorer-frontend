@@ -56,15 +56,6 @@
   padding: 0;
 }
 
-.footer-info__school {
-  width: 120px;
-  height: 16px;
-  color: rgba(255, 255, 255, 1);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 15.73px;
-}
-
 .footer-info__github {
   width: 42px;
   height: 16px;
@@ -72,7 +63,6 @@
   font-size: 13px;
   font-weight: 400;
   line-height: 15.73px;
-  margin-left: 20px;
 }
 
 
@@ -128,22 +118,12 @@
     flex-direction: column;
   }
   
-  .footer-info__school {
-    width: 111px;
-    height: 15px;
-    font-size: 12px;
-    line-height: 14.52px;
-    margin-bottom: 12px;
-    align-self: center;
-  }
-  
   .footer-info__github {
     width: 39px;
     height: 15px;
     font-size: 12px;
     line-height: 14.52px;
     margin-bottom: 30px;
-    margin-left: 0;
     align-self: center;
   }
 }

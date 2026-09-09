@@ -1,16 +1,30 @@
+export const API_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+export const PASSWORD_MIN_LENGTH = 8;
+export const NAME_MIN_LENGTH = 2;
+export const NAME_MAX_LENGTH = 30;
+
+export const MOVIES_API_URL =
+  import.meta.env.VITE_MOVIES_API_URL ||
+  'https://api.nomoreparties.co/beatfilm-movies';
+
+export const MOVIES_IMAGE_BASE =
+  import.meta.env.VITE_MOVIES_IMAGE_BASE ||
+  'https://api.nomoreparties.co';
+
 export const MOVIES_API_SETTINGS = {
-  baseUrl: 'https://api.nomoreparties.co/beatfilm-movies',
+  baseUrl: MOVIES_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 };
 
 export const MAIN_API_SETTINGS = {
-  baseUrl: "https://api.diplommovies.nomoredomainsmonster.ru",
+  baseUrl: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  credentials: 'include',
 };
 
 export const SHORT_MOVIE_MINUTES = 40;
@@ -31,3 +45,5 @@ export const isSmallTabletMin = 729;
 export const isSmallTabletMax = 969;
 export const isMobileMin = 320;
 export const isMobileMax = 728;
+export const isMobileLayoutMax = 768;
+export const isCompactSearchMax = 525;

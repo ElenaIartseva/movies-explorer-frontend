@@ -1,2 +1,11 @@
 @import url(./vendor/normalize.css);
 @import url(./vendor/fonts.css);
+
+.register__fieldset,
+.profile__fieldset,
+.search-form__fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}

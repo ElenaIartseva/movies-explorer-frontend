@@ -1,50 +1,50 @@
 import './Movies.css';
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { moviesApi } from "../../utils/MoviesApi.js";
+import { moviesApi } from '../../utils/MoviesApi.js';
 import { SearchForm } from '../SearchForm/SearchForm.js';
 import { MoviesCardList } from '../MoviesCardList/MoviesCardList.js';
 import { Preloader } from '../Preloader/Preloader.js';
 import { useScreen } from '../../hooks/useScreen.js';
+import { useMoviesFilter } from '../../hooks/useMoviesFilter.js';
 
-import { 
-  SHORT_MOVIE_MINUTES, 
+import {
   DESKTOP,
   TABLET,
   SMALLTABLET,
   MOBILE,
-  DESKTOP_ADD, 
-  TABLET_ADD, 
-  MOBILE_ADD 
+  DESKTOP_ADD,
+  TABLET_ADD,
+  MOBILE_ADD,
 } from '../../utils/constants.js';
 
 function Movies(props) {
+  const { onLikeCard, onDelete, savedCards } = props;
 
-  const { 
-    loggedIn,
-    onLikeCard, 
-    onDelete,
-    savedCards, 
-  } = props;
-
-  const [isLoading, setIsLoading] = useState(false); // процесс загрузки данных
-  const [isError, setIsError] = useState({}); // ошибки в инпутах
-  const [isSending, setIsSending] = useState(false); // для блокировки формы во время отправки запроса
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [isErrorCards, setIsErrorCards] = useState(false);
   const [cards, setCards] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(''); // строка поиска
-  const [filteredCards, setFilteredCards] = useState([]);
-  const [isShortMovie, setIsShortMovie] = useState(false);
-  const [isInputError, setIsInputError] = useState(false);
-  const [isSubmit, setIsSubmit] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    filteredCards,
+    isShortMovie,
+    setIsShortMovie,
+    isInputError,
+    handleSearchChange,
+    handleShortMoviesChange,
+    validateSearchSubmit,
+    applyFilter,
+  } = useMoviesFilter(cards);
 
   const { pathname } = useLocation();
-
-  // отображение определённого количества карточек
   const [visibleCardsCount, setVisibleCardsCount] = useState(0);
   const { isDesktop, isTablet, isSmallTablet, isMobile } = useScreen();
 
-  const handleShowCards = () => {
+  const handleShowCards = useCallback(() => {
     if (isDesktop) {
       setVisibleCardsCount(DESKTOP);
     } else if (isTablet) {
@@ -54,175 +54,122 @@ function Movies(props) {
     } else if (isMobile) {
       setVisibleCardsCount(MOBILE);
     }
-  };
-
-  useEffect(() => {
-    handleShowCards();
   }, [isDesktop, isTablet, isSmallTablet, isMobile]);
 
-  const handleResize = () => {
-    handleShowCards();
-  };
-
   useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+    handleShowCards();
+  }, [handleShowCards]);
 
-  // добавление карточек по кнопке ещё
   function handleAddMore() {
-    if (isDesktop) { 
-      setVisibleCardsCount((visibleCardsCount) => visibleCardsCount + DESKTOP_ADD);
-    };
-    if (isTablet) { 
-      setVisibleCardsCount((visibleCardsCount) => visibleCardsCount + TABLET_ADD);
-    };
-    if (isSmallTablet || isMobile) {
-      setVisibleCardsCount((visibleCardsCount) => visibleCardsCount + MOBILE_ADD);
-    };
-  };   
-
-  // строка поиска
-  function handleSearchChange(evt) {
-    setSearchQuery(evt.target.value);
-  };
-
-  // фильтрация карточек на стороне клиента
-  const filterMovies = useCallback(() => {
-    const query = searchQuery.toLowerCase();
-    
-    let filteredMovies = cards.filter((movie) => {
-      const movieTitleRU = movie.nameRU.toLowerCase();
-      const movieTitleEN = movie.nameEN.toLowerCase();
-      return movieTitleRU.includes(query) || movieTitleEN.includes(query);
-    });
-
-    if (isShortMovie) {
-      filteredMovies = filteredMovies.filter((movie) => movie.duration <= SHORT_MOVIE_MINUTES);
+    if (isDesktop) {
+      setVisibleCardsCount((count) => count + DESKTOP_ADD);
+    } else if (isTablet) {
+      setVisibleCardsCount((count) => count + TABLET_ADD);
+    } else if (isSmallTablet || isMobile) {
+      setVisibleCardsCount((count) => count + MOBILE_ADD);
     }
-    setFilteredCards(filteredMovies);
-    setIsSubmit(false);
-  }, [isSubmit, isShortMovie, cards]);
+  }
 
-  // поиск фильмов первый раз с сервера, затем из local storage
   const handleSearchMovies = () => {
-    
-    if (cards.length !== 0 ) {
-      setIsLoading(true);
-      setIsSending(true);
-    
-      filterMovies(searchQuery, isShortMovie, cards);
+    setHasSearched(true);
+
+    if (cards.length !== 0) {
+      setIsErrorCards(false);
+      applyFilter();
       localStorage.setItem('search', JSON.stringify(searchQuery));
       localStorage.setItem('isShort', JSON.stringify(isShortMovie));
       localStorage.setItem('movies', JSON.stringify(cards));
-       
-      setIsLoading(false);
-      setIsSending(false);
+      return;
+    }
 
-    } else {
-      setIsLoading(true);
-      setIsSending(true);
-      moviesApi
+    setIsLoading(true);
+    setIsSending(true);
+
+    moviesApi
       .getMovies()
-      .then((cards) => {
-        setCards(cards);
-
-        filterMovies(searchQuery, isShortMovie, cards);
+      .then((movies) => {
+        setCards(movies);
+        setIsErrorCards(false);
         localStorage.setItem('search', JSON.stringify(searchQuery));
         localStorage.setItem('isShort', JSON.stringify(isShortMovie));
-        localStorage.setItem('movies', JSON.stringify(cards));
+        localStorage.setItem('movies', JSON.stringify(movies));
       })
-        .catch((error) => {
-          setIsError(true);
-          console.log(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-          setIsSending(false);
-        });
-      }
-    };
-
-  useEffect(() => {
-    filterMovies();
-  }, [filterMovies]);
+      .catch(() => {
+        setIsErrorCards(true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+        setIsSending(false);
+      });
+  };
 
   useEffect(() => {
     if (localStorage.search && localStorage.isShort && localStorage.movies) {
-      const search = JSON.parse(localStorage.search);
-      setSearchQuery(search);
-      const isShort = JSON.parse(localStorage.isShort);
-      setIsShortMovie(isShort);
-      const movies = JSON.parse(localStorage.movies);
-      setCards(movies);
-    } 
-  }, []);
-   
-  // checkbox
-  function handleShortMoviesChange() {
-    setIsShortMovie(!isShortMovie);
+      setSearchQuery(JSON.parse(localStorage.search));
+      setIsShortMovie(JSON.parse(localStorage.isShort));
+      setCards(JSON.parse(localStorage.movies));
+      setHasSearched(true);
+    }
+  }, [setSearchQuery, setIsShortMovie]);
+
+  function handleShortMoviesChangeWithStorage() {
+    handleShortMoviesChange();
     localStorage.setItem('isShort', JSON.stringify(!isShortMovie));
-    filterMovies();
-  };
+  }
 
   function handleSubmit(evt) {
     evt.preventDefault();
-    if (searchQuery === '') {
-      setIsInputError(true);
-    } else {
-      handleShowCards();
-      handleSearchMovies(filteredCards);
-      setIsSubmit(true);
-      setIsInputError(false);
+    if (!validateSearchSubmit()) {
+      return;
     }
-  };
+    handleShowCards();
+    handleSearchMovies();
+  }
 
-return (
-    <section className='movies'>
-      <SearchForm 
+  return (
+    <section className="movies">
+      <SearchForm
         onSubmit={handleSubmit}
         onChange={handleSearchChange}
         value={searchQuery}
         isError={isInputError}
         isSending={isSending}
-        // checkbox
         checked={isShortMovie}
-        onCheckboxChange={handleShortMoviesChange}
+        onCheckboxChange={handleShortMoviesChangeWithStorage}
       />
-      {isLoading 
-        ? <Preloader />
-        : isErrorCards
-          ? <p className='movies-error'>Во время запроса произошла ошибка. Возможно, проблема 
-            с соединением или сервер недоступен. Подождите немного и попробуйте ещё раз.
-            </p> 
-          : filteredCards.length > 0 
-            ? (
-              <>
-                <MoviesCardList 
-                  cards={filteredCards}
-                  visibleCardsCount={visibleCardsCount}
-                  savedCards={savedCards}
-                  onLikeCard={onLikeCard}
-                  onDelete={onDelete}
-                />
-                {visibleCardsCount < filteredCards.length && (
-                  <button 
-                    className="button movies__button" 
-                    onClick={handleAddMore}
-                  >
-                    Ещё
-                  </button>
-                )}
-              </>
-              ) 
-            : cards.length !== 0 && pathname === '/movies'
-              ? <p className='movies-error'>Ничего не найдено</p>
-              : ''
-      }
+      {isLoading ? (
+        <Preloader />
+      ) : isErrorCards ? (
+        <p className="movies-error">
+          Во время запроса произошла ошибка. Возможно, проблема с соединением или
+          сервер недоступен. Подождите немного и попробуйте ещё раз.
+        </p>
+      ) : filteredCards.length > 0 ? (
+        <>
+          <MoviesCardList
+            cards={filteredCards}
+            visibleCardsCount={visibleCardsCount}
+            savedCards={savedCards}
+            onLikeCard={onLikeCard}
+            onDelete={onDelete}
+          />
+          {visibleCardsCount < filteredCards.length && (
+            <button className="button movies__button" onClick={handleAddMore}>
+              Ещё
+            </button>
+          )}
+        </>
+      ) : cards.length !== 0 && pathname === '/movies' ? (
+        <p className="movies-error">Ничего не найдено</p>
+      ) : !hasSearched && pathname === '/movies' ? (
+        <p className="movies-error movies-error_type_empty">
+          Введите ключевое слово, чтобы найти фильм
+        </p>
+      ) : (
+        ''
+      )}
     </section>
   );
-};
+}
 
 export { Movies };
