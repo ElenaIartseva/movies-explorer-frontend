@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { NAME_MIN_LENGTH, PASSWORD_MIN_LENGTH } from '../utils/constants.js';
 
 export function useValidation() {
 
@@ -29,7 +30,7 @@ export function useValidation() {
       if (evt.target.validationMessage === 'Введите данные в указанном формате.') {
         setErrors({
           ...errors,
-          name: 'Имя должно сост. из не менее чем 2 симв., вкл. только латиницу и кириллицу.',
+          name: `Имя должно сост. из не менее чем ${NAME_MIN_LENGTH} симв., вкл. только латиницу и кириллицу.`,
         });
       }
     }
@@ -45,7 +46,7 @@ export function useValidation() {
       if (evt.target.validationMessage === 'Введите данные в указанном формате.') {
         setErrors({
           ...errors,
-          password: 'Пароль должен состоять из не менее чем 8 символов.',
+          password: `Пароль должен состоять из не менее чем ${PASSWORD_MIN_LENGTH} символов.`,
         });
       }
     };

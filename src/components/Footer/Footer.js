@@ -6,25 +6,21 @@ function Footer() {
 
   return (
     <>
-      {(pathname === '/' || pathname === '/movies' || pathname === '/saved-movies') && (
+      {(pathname === '/movies' || pathname === '/saved-movies') && (
         <footer className='footer'>
           <p className='footer__title'>Учебный проект Яндекс.Практикум х BeatFilm.</p>
 
           <div className='footer-info'>
             <p className='footer-info__date'>© 2023</p>
-            <div className='footer-info__links'> 
-              <a 
-                className='footer-info__school link'
-                href='https://practicum.yandex.ru/'
-                rel='noreferrer'
-                target='_blank'
-              >Яндекс.Практикум</a>
-              <a 
+            <div className='footer-info__links'>
+              <a
                 className='footer-info__github link'
-                href='https://github.com/ElenaUstimenko/'
+                href='https://github.com/ElenaIartseva'
                 rel='noreferrer'
                 target='_blank'
-                >Github</a>
+              >
+                Github
+              </a>
             </div>
           </div>
         </footer>

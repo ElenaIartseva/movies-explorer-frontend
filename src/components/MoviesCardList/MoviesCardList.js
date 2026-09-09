@@ -40,7 +40,7 @@ function MoviesCardList(props) {
         )))
       }
       </ul>
-    </div>
+    </section>
   )
 };
 

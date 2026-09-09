@@ -1,4 +1,13 @@
-import React from 'react';
+import { createContext, useContext } from 'react';
 
-// использовать контекст, чтобы все компоненты приложения могли получить доступ к этим данным
-export const CurrentUserContext = React.createContext();
+export const CurrentUserContext = createContext(null);
+
+export function useCurrentUser() {
+  const context = useContext(CurrentUserContext);
+
+  if (!context) {
+    throw new Error('useCurrentUser must be used within CurrentUserContext.Provider');
+  }
+
+  return context;
+}
